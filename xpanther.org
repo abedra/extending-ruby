@@ -1,0 +1,86 @@
+#+TITLE:     Extending Ruby With C
+#+AUTHOR:    Aaron Bedra
+#+EMAIL:     aaron@aaronbedra.com
+#+LANGUAGE:  en
+
+* Starting Structure
+  - We will start with the basic structure of a gem. It consists of a
+    =.gemspec= file that containts the instructions for packaging and
+    building the gem.
+#+begin_src sh
+  touch xpanther.gemspec
+  mkdir lib
+  touch lib/xpanther.rb
+#+end_src
+** Initial Code
+   - Next, we need to put some basic code in place to make the gem function:
+#+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
+  require 'rexml/document'
+  
+  class XPanther
+    def self.search_pure(filename, xpath)
+      document = REXML::Document.new(File.read(filename))
+      REXML::XPath.match(document.root, xpath)
+    end
+  end
+#+end_src
+** Initial Gemspec
+   - Now we need to tell Rubygems how to build and package this gem:
+#+begin_src ruby :tangle xpanther.gemspec
+  Gem::Specification.new do |s|
+    s.name        = 'xpanther'
+    s.version     = '0.0.0'
+    s.date        = '2012-02-21'
+    s.summary     = "XPath Search tool"
+    s.description = "XPath Search tool"
+    s.authors     = ["Aaron Bedra"]
+    s.email       = 'aaron@aaronbedra.com'
+    s.files       = ["lib/xpanther.rb"]
+    s.homepage    = "http://example.com"
+  end
+#+end_src
+** Building and testing the gem
+   - First, build and install the gem:
+#+begin_src sh
+  gem build xpanther.gemspec
+  gem install xpanther-0.0.0.gem
+#+end_src
+   - Next, start an irb session using the new gem:
+#+begin_src sh
+  irb -rubygems -rxpanther
+#+end_src
+#+begin_src sh
+  >> XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()").count
+  => 20
+  >> XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()").first
+  => "Hoje sai com a @is_nanny"
+#+end_src
+* Testing
+** Adding the first test
+   - We should add at least one test to get our structure in place and
+     make sure things behave like we expect them to:
+#+begin_src ruby :mkdirp yes :tangle test/test_xpanther.rb
+  require 'test/unit'
+  require 'xpanther'
+  
+  class XPantherTest < Test::Unit::TestCase
+    def test_search_pure
+      results = XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()")
+      assert_equal(20, results.count)
+      assert_equal("Hoje sai com a @is_nanny", results.first.to_s)
+    end
+  end
+#+end_src
+** Adding a Rake task
+   - It's always easier to control things via Rake
+#+begin_src ruby :tangle Rakefile
+  require 'rake/testtask'
+  
+  Rake::TestTask.new do |t|
+    t.libs << "test"
+  end
+  
+  task :default => :test
+#+end_src
+** Running our tests
+   - With the default task wired up we can just run =rake=. Here's what you should see
