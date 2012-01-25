@@ -6,7 +6,7 @@
 * Starting Structure
   - We will start with the basic structure of a gem. It consists of a
     =.gemspec= file that containts the instructions for packaging and
-    building the gem.
+    building a gem.
 #+begin_src sh
   touch xpanther.gemspec
   mkdir lib
@@ -42,12 +42,12 @@
 ** Building and testing the gem
    - First, build and install the gem:
 #+begin_src sh
-  gem build xpanther.gemspec
-  gem install xpanther-0.0.0.gem
+  $ gem build xpanther.gemspec
+  $ gem install xpanther-0.0.0.gem
 #+end_src
    - Next, start an irb session using the new gem:
 #+begin_src sh
-  irb -rubygems -rxpanther
+  $ irb -rubygems -rxpanther
 #+end_src
 #+begin_src sh
   >> XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()").count
@@ -84,3 +84,122 @@
 #+end_src
 ** Running our tests
    - With the default task wired up we can just run =rake=. Here's what you should see
+#+begin_src sh
+  Loaded suite /Users/abedra/.rvm/gems/ree-1.8.7-2011.12/gems/rake-0.9.2.2/lib/rake/rake_test_loader
+  Started
+  .
+  Finished in 0.090969 seconds.
+  
+  1 tests, 2 assertions, 0 failures, 0 errors
+#+end_src
+* How fast is it?
+** Timing a run
+   - We can now use our gem to see how fast it takes to ask some
+     questions about the sample xml document. Make sure to install the
+     latest version of the gem.
+#+begin_src sh
+  $ gem build xpanther.gemspec
+  $ gem install xpanther-0.0.0.gem
+#+end_src
+#+begin_src ruby :mkdirp yes :tangle examples/pure.rb
+  require 'rubygems'
+  require 'xpanther'
+  
+  results = XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()")
+  puts results.count
+  puts results[1]
+#+end_src
+   - Now we can time run of this to see how we're doing on performance
+#+begin_src sh
+  $ time ruby examples/pure.rb
+  20
+  gelitik cewe paling binal dan buset ,,
+  ruby examples/pure.rb  0.15s user 0.01s system 98% cpu 0.167 total
+#+end_src sh
+** Should we stop here?
+   - This actually seems pretty fast. Isn't this fast enough?
+* Experiment: XPath search in C with libxml
+  - libxml is a very widely used library in the XML parsing game. If
+    you are in C and need to get the job done, libxml is your best
+    friend
+** The test
+#+begin_src c :tangle examples/xml.c
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <libxml/tree.h>
+  #include <libxml/parser.h>
+  #include <libxml/xpath.h>
+  #include <libxml/xpathInternals.h>
+  
+  int search(const char* filename, const xmlChar* xpathExpr) {
+    xmlDocPtr doc;
+    xmlXPathContextPtr xpathCtx;
+    xmlXPathObjectPtr xpathObj;
+    xmlNodePtr cur;
+    xmlNodeSetPtr nodes;
+    int size;
+    int i;
+  
+    doc = xmlParseFile(filename);
+    xpathCtx = xmlXPathNewContext(doc);
+    xpathObj = xmlXPathEvalExpression(xpathExpr, xpathCtx);
+  
+    nodes = xpathObj->nodesetval;
+    size = (nodes) ? nodes->nodeNr : 0;
+  
+    if (size == 1) {
+      fprintf(stderr, "%s\n", xmlNodeGetContent(nodes->nodeTab[0]));
+    } else {
+      for (i = 0; i < size; ++i) {
+        cur = nodes->nodeTab[i];
+        fprintf(stderr, "%s\n", xmlNodeGetContent(cur));
+      }
+    }
+  
+    xmlXPathFreeObject(xpathObj);
+    xmlXPathFreeContext(xpathCtx);
+    xmlFreeDoc(doc);
+  
+    return(0);
+  }
+  
+  int main(int argc, char **argv) {
+    xmlInitParser();
+    search(argv[1], argv[2]);
+    xmlCleanupParser();
+    xmlMemoryDump();
+    return 0;
+  }
+#+end_src
+** Compiling
+   - You can compile the example using the following command:
+#+begin_src sh
+  gcc xml.c -o xml `xml2-config --cflags` `xml2-config --libs`
+#+end_src
+** How fast is the C version?
+#+begin_src sh
+  time ./xml twitter.xml "/statuses/status/text"
+  
+  Hoje sai com a @is_nanny
+  gelitik cewe paling binal dan buset ,,
+  めっさひまやで！
+  
+  ....
+  
+  /xml twitter.xml "/statuses/status/text"  0.00s user 0.00s system 40% cpu 0.0010 total
+#+end_src
+   - Wow! I'll bet without too much modification we can turn this into a Ruby C extension
+* Adding the extension infrastructure
+** Directory structure
+** extconf.rb
+** A simple example
+** Adding a test
+** Updating the Rakefile to autocompile for tests
+* Moving the example into a real Ruby extension
+** How should the API look?
+** Object creation
+*** A note about GC and memory management
+** When the basic constructor just won't do
+** Putting it all together
+* The results!
+* Conclusions/Questions

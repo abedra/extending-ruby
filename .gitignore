@@ -1,0 +1,8 @@
+Rakefile
+examples/xml
+examples/xml.c
+lib
+test
+examples/pure.rb
+xpanther.gemspec
+*.html
