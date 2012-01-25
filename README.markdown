@@ -2,7 +2,7 @@
 
 This is the examples and instructions from the 2/21/12 Groupon Geekfest.
 
-# Generating the html version
+## Generating the html version
 
 You can generate an html version of this document will full syntax highlighting by running
 
@@ -10,7 +10,7 @@ You can generate an html version of this document will full syntax highlighting 
 
 after that is run, simply save the buffer to a file of your choosing
 
-# Generating the source code
+## Generating the source code
 
 The org-mode document will generate all of the code for the example in the correct locations by running
 
