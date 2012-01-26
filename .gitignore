@@ -6,3 +6,5 @@ test
 examples/pure.rb
 xpanther.gemspec
 *.html
+ext
+*.gem

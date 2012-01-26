@@ -31,8 +31,8 @@
     s.name        = 'xpanther'
     s.version     = '0.0.0'
     s.date        = '2012-02-21'
-    s.summary     = "XPath Search tool"
-    s.description = "XPath Search tool"
+    s.summary     = "Made with real bits of panther"
+    s.description = "60% of the time it works all the time"
     s.authors     = ["Aaron Bedra"]
     s.email       = 'aaron@aaronbedra.com'
     s.files       = ["lib/xpanther.rb"]
@@ -191,10 +191,131 @@
    - Wow! I'll bet without too much modification we can turn this into a Ruby C extension
 * Adding the extension infrastructure
 ** Directory structure
+   - When adding a C extension, the common folder structure is
+     =ext/gemname/*.c=. We will create the ext/xpanther directory and
+     create a file called extconf.rb in the xpanther folder.
 ** extconf.rb
+   - =extconf.rb= will generate a =Makefile= for the project. It is
+     also what you will add to the gemspec to tell it how to build
+     your extension.
+#+begin_src ruby :mkdirp yes :tangle ext/xpanther/extconf.rb
+  require 'mkmf'
+  create_makefile('xpanther/xpanther')
+#+end_src
 ** A simple example
+   - Now we just need to add a short example to test our structure and wiring.
+#+begin_src c :mkdirp yes :tangle ext/xpanther/xpanther.c
+  #include <ruby.h>
+  
+  static VALUE hello(VALUE self) {
+    return rb_str_new2("Hello from C");
+  }
+  
+  void Init_xpanther(void) {
+    VALUE klass = rb_define_class("XPanther", rb_cObject);
+    rb_define_singleton_method(klass, "hello", hello, 0);
+  }
+#+end_src
+   - We also need to have our gem load the extension
+#+begin_src ruby
+  require 'xpanther/xpanther'
+  require 'rexml/document'
+  class XPanther
+  
+  ....
+#+end_src ruby
+** Updating the gemspec
+   - In order to have the extension built when our gem is installed, we have to tell the gemspec about it.
+#+begin_src ruby
+  Gem::Specification.new do |s|
+    # ... (other stuff) ...
+  
+    s.files = Dir.glob('lib/**/*.rb') + Dir.glob('ext/**/*.c')
+    s.extensions = ['ext/xpanther/extconf.rb']
+  
+    # ... (other stuff) ...
+  end
+#+end_src
+** Trying out the extension
+   - Let's install our gem and give the new method a try. Since we
+     have made significant changes we should bump the version number
+     as well.
+#+begin_src sh
+  $ gem install xpanther-0.0.1.gem 
+  Building native extensions.  This could take a while...
+  Successfully installed xpanther-0.0.1
+  1 gem installed
+  Installing ri documentation for xpanther-0.0.1...
+  Installing RDoc documentation for xpanther-0.0.1...
+#+end_src
+   - Notice the new message about building the native extension. If
+     you don't see that, your extension is not being installed.
+   - Fire up and irb session and run the new method:
+#+begin_src sh
+  $ irb -rubygems -rxpanther
+  >> XPanther.hello
+  => "Hello from C"
+#+end_src
 ** Adding a test
+   - We are going to add a test for our new extension. You might be
+     wondering why, but it will present an interesting challenge for
+     us to solve when we try to run the tests.
+#+begin_src ruby
+  def test_extension
+    assert_equal("Hello from C", XPanther.hello)
+  end  
+#+end_src
 ** Updating the Rakefile to autocompile for tests
+   - When we try to run =rake= we are now presented with an error.
+#+begin_src sh
+  $ rake
+  ./lib/xpanther.rb:1:in `require': no such file to load -- xpanther/xpanther (LoadError)
+  from ./lib/xpanther.rb:1
+  
+  ....
+#+end_src
+   - This error is caused because our extension is not compiled and
+     available for our tests. Luckily, there's an easy solution to
+     this.
+   - Before we open our =Rakefile=, we should do a quick test on our system in irb
+#+begin_src sh
+  $ irb -rrbconfig
+  >> RbConfig::CONFIG['DLEXT']
+  => "bundle"
+#+end_src
+   - This let's us know that the compiled extension will have the file
+     extension of =.bundle=. If you are on Linux you would see =.so=
+     instead of .bundle
+   - Let's add some code into our =Rakefile= to automatically compile our extension when we run =rake=
+#+begin_src ruby :tangle no
+  require 'rake/testtask'
+  require 'rake/clean'
+  require 'rbconfig'
+  
+  EXT = RbConfig::CONFIG['DLEXT']
+  
+  file "lib/xpanther/xpanther.#{EXT}" =>
+    Dir.glob("ext/xpanther/*{.rb,.c}") do
+    Dir.chdir("ext/xpanther") do
+      ruby "extconf.rb"
+      sh "make"
+    end
+    cp "ext/xpanther/xpanther.#{EXT}", "lib/xpanther"
+  end
+  
+  task :test => "lib/xpanther/xpanther.#{EXT}"
+  
+  CLEAN.include('ext/**/*{.o,.log,.#{EXT}}')
+  CLEAN.include('ext/**/Makefile')
+  CLOBBER.include('lib/**/*.#{EXT}')
+  
+  Rake::TestTask.new do |t|
+    t.libs << 'test'
+  end
+  
+  desc "Run tests"
+  task :default => :test
+#+end_src
 * Moving the example into a real Ruby extension
 ** How should the API look?
 ** Object creation
