@@ -318,9 +318,41 @@
 #+end_src
 * Moving the example into a real Ruby extension
 ** How should the API look?
-** Object creation
+   - There's quite a few different ways to create an API. SOMETHING ABOUT OTHER BLOCKERS HERE
 *** A note about GC and memory management
+    - Note that in our C example libxml created and freed the
+      memory. Ruby will not be able to handle the cleanup here and we
+      will introduce a memory leak if we ignore this.
+** Object creation
+   - When we create the object we should parse the XML document into
+     memory and make it available for reference. Here's what our
+     object creation will look like.
+#+begin_src ruby
+  document = XPanther.new("/path/to/document.xml")
+#+end_src
 ** When the basic constructor just won't do
+   - Since we want to deal with libxml needs to manage its own memory
+     here, we will need to modify the constructor just a bit to
+     account for this.
+#+begin_src c
+  VALUE constructor(VALUE self, VALUE filename) 
+  {
+    xmlDocPtr doc;  
+    VALUE argv[1];
+    VALUE t_data;
+  
+    doc = xmlParseFile(StringValueCStr(filename));
+    if (doc == NULL) {
+      fprintf(stderr, "Error: unable to parse file \"%s\"\n", StringValueCStr(filename));
+      return -1;
+    }
+  
+    t_data = Data_Wrap_Struct(self, 0, xml_free, doc);
+    argv[0] = filename;
+    rb_obj_call_init(t_data, 1, argv);
+    return t_data;
+  }
+#+end_src
 ** Putting it all together
 * The results!
 * Conclusions/Questions
