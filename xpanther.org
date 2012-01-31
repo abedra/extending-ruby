@@ -353,6 +353,151 @@
     return t_data;
   }
 #+end_src
+   - There's a few new ideas going on here. We are accepting a
+     filename as an argument to our constructor. This is then
+     converted from a Ruby string to a C string via the
+     =StringValueCStr= function and passed into =xmlParseFile=. Error
+     checking is important here. If the user passes in an invalid
+     argument we want to notify them and return nil. We then have to
+     take our variable and wrap them in an object representation for
+     Ruby. We can do this via =Data_Wrap_Struct=. We have to provide
+     it the object reference, a mark for garbage collection, a pointer
+     to the function to call when it's time to free the memory, and a
+     pointer to the data that we want to stuff inside. We will examine
+     the =xml_free= function in a minute. Finally, we will manually
+     initialize our object with =rb_obj_call_init= and feed it our
+     object data, argument count, and argument data. This is the C way
+     to call =initialize= for our class.
+** Freeing the memory
+   - Previously, we pointed to a function called =xml_free= that is
+     supposed to instruct Ruby's garbage collection routines on how to
+     deal with the memory allocated by libxml during object
+     construction. Let's take a look.
+#+begin_src c
+  static void xml_free(void *doc) {
+    xmlFreeDoc(doc);
+  }
+#+end_src
+   - All we are doing here is delegating the memory management to
+     libxml. We just have to pass the function a pointer to the
+     document in memory.
+** Wiring up our new constructor
+   - We have a new constructor that will serve our purpose well, but
+     we still need to wire it up to our object inside the
+     =Init_xpanther= function.
+#+begin_src c
+  void Init_xpather(void)
+  {
+    VALUE klass = rb_define_class("XPather", rb_cObject);
+    rb_define_singleton_method(klass, "new", constructor, 1);
+  }
+#+end_src
+   - Here we are defining what the =new= method is going to do. In
+     this case, we are going to use our constructor and the cycle is
+     complete.
 ** Putting it all together
+   - We have all the structure in place. We just have to drop our
+     search routine in place and wire it up and our task will be
+     complete. Let's define our =search= method.
+#+begin_src c
+  VALUE search(VALUE self, VALUE xpathExpr)
+  {
+    VALUE results = rb_ary_new();
+    xmlDocPtr doc;
+    xmlXPathContextPtr xpathCtx;
+    xmlXPathObjectPtr xpathObj;
+    xmlNodeSetPtr nodes;
+    xmlNodePtr cur;
+    int size;
+    int i;
+    
+    Data_Get_Struct(self, xmlDoc, doc);
+  
+    xpathCtx = xmlXPathNewContext(doc);
+    if (xpathCtx == NULL) {
+      fprintf(stderr, "Error: unable to create new XPath context\n");
+      xmlFreeDoc(doc);
+      return -1;
+    }
+  
+    xpathObj = xmlXPathEvalExpression(StringValueCStr(xpathExpr), xpathCtx);
+    if (xpathObj == NULL) {
+      fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
+      xmlXPathFreeContext(xpathCtx);
+      xmlFreeDoc(doc);
+      return -1;
+    }
+    
+    nodes = xpathObj->nodesetval;
+    size = (nodes) ? nodes->nodeNr : 0;
+  
+    if (size == 1) {
+      results = rb_str_new2(xmlNodeGetContent(nodes->nodeTab[0]));
+    } else {
+      for (i = 0; i < size; ++i) {
+        cur = nodes->nodeTab[i];
+        rb_ary_push(results, rb_str_new2(xmlNodeGetContent(cur)));
+      }
+    }
+  
+    xmlXPathFreeObject(xpathObj);
+    xmlXPathFreeContext(xpathCtx);
+    
+    return results;
+  }
+#+end_src
+   - Here we define a function that accepts an xpath expression just
+     like we had in our pure Ruby example. We setup our variables just
+     like we did in our experiment with the exception of =VALUE
+     results=. This is the value that we will pass back to Ruby after
+     we are done. We now see the reverse of our object packing,
+     =Data_Get_Struct=. It's a type-safe wrapper around the =DATA_PTR=
+     macro which essentially just returns the data we packed up in our
+     constructor and places it inside the =doc= variable.
+   - The rest of this function looks pretty similar to our experiment
+     with few exceptions. These are all Ruby/C interop functions that
+     make it possible for C to understand the Ruby data and then pass
+     it back so that Ruby can understand it.
+   - We already covered =StringValueCStr=, but we haven't seen
+     =rb_str_new2= yet. This function, along with the other
+     =rb_str_new= functions, turns a =char *= into a =VALUE= for Ruby
+     to consume. =rb_str_new2= is the most commonly used of the
+     conversion functions, because it automatically calculates the
+     length of the string, making the function call more convienient.
+   - =rb_ary_new= and =rb_ary_push= do exactly what you think they do.
+   - Let's wire up the search function:
+#+begin_src c
+  void Init_xpather(void)
+  {
+    VALUE klass = rb_define_class("XPather", rb_cObject);
+    rb_define_singleton_method(klass, "new", constructor, 1);
+    rb_define_method(klass, "search", search, 1);
+  }
+#+end_src
+   - We need to do a little bit of housekeeping to make things build
+     properly. First, adjust the includes in =xpanther.c= to include
+     the libxml pieces from our experiment.
+#+begin_src c
+  #include <ruby.h>
+  #include <libxml/tree.h>
+  #include <libxml/parser.h>
+  #include <libxml/xpath.h>
+  #include <libxml/xpathInternals.h>
+#+end_src
+   - We also need to modify =extconf.rb= and tell it to link against
+     libxml so that our extension can compile properly.
+#+begin_src ruby
+  require 'mkmf'
+  have_library("xml2")
+  find_header("libxml/tree.h", "/usr/include/libxml2")
+  find_header("libxml/parser.h", "/usr/include/libxml2")
+  find_header("libxml/xpath.h", "/usr/include/libxml2")
+  find_header("libxml/xpathInternals.h", "/usr/include/libxml2")
+  create_makefile('xpather/xpather')
+#+end_src
+   - Since we already wired up our extension, all we have to do is
+     rebuild and reinstall our gem to give it a try.
+#+begin_src sh
+  
+#+end_src
 * The results!
-* Conclusions/Questions
