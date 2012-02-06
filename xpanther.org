@@ -291,16 +291,17 @@
   require 'rake/testtask'
   require 'rake/clean'
   require 'rbconfig'
+  require 'fileutils'
   
   EXT = RbConfig::CONFIG['DLEXT']
   
-  file "lib/xpanther/xpanther.#{EXT}" =>
-    Dir.glob("ext/xpanther/*{.rb,.c}") do
-    Dir.chdir("ext/xpanther") do
+  file "lib/xpanther/xpanther.#{EXT}" => Dir.glob('ext/xpanther/*.c') do
+    Dir.chdir('ext/xpanther') do
       ruby "extconf.rb"
       sh "make"
     end
-    cp "ext/xpanther/xpanther.#{EXT}", "lib/xpanther"
+    FileUtils.mkdir_p('lib/xpanther')
+    cp "ext/xpanther/xpanther.#{EXT}", "lib/xpanther/xpanther.#{EXT}"
   end
   
   task :test => "lib/xpanther/xpanther.#{EXT}"
@@ -382,14 +383,24 @@
      libxml. We just have to pass the function a pointer to the
      document in memory.
 ** Wiring up our new constructor
+   - In order for us to be able to accept an argument in our
+     constructor, we also need to create an initialize method.
+#+begin_src c
+  static VALUE initialize(VALUE self, VALUE filename) 
+  {
+    rb_iv_set(self, "@filename", filename);
+    return self;
+  }
+#+end_src
    - We have a new constructor that will serve our purpose well, but
      we still need to wire it up to our object inside the
      =Init_xpanther= function.
 #+begin_src c
-  void Init_xpather(void)
+  void Init_xpanther(void)
   {
-    VALUE klass = rb_define_class("XPather", rb_cObject);
+    VALUE klass = rb_define_class("XPanther", rb_cObject);
     rb_define_singleton_method(klass, "new", constructor, 1);
+    rb_define_method(klass, "initialize", initialize, 1);
   }
 #+end_src
    - Here we are defining what the =new= method is going to do. In
@@ -467,9 +478,9 @@
    - =rb_ary_new= and =rb_ary_push= do exactly what you think they do.
    - Let's wire up the search function:
 #+begin_src c
-  void Init_xpather(void)
+  void Init_xpanther(void)
   {
-    VALUE klass = rb_define_class("XPather", rb_cObject);
+    VALUE klass = rb_define_class("XPanther", rb_cObject);
     rb_define_singleton_method(klass, "new", constructor, 1);
     rb_define_method(klass, "search", search, 1);
   }
@@ -493,7 +504,7 @@
   find_header("libxml/parser.h", "/usr/include/libxml2")
   find_header("libxml/xpath.h", "/usr/include/libxml2")
   find_header("libxml/xpathInternals.h", "/usr/include/libxml2")
-  create_makefile('xpather/xpather')
+  create_makefile('xpanther/xpanther')
 #+end_src
    - Since we already wired up our extension, all we have to do is
      rebuild and reinstall our gem to give it a try.
