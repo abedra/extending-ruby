@@ -190,12 +190,12 @@
   
   /xml twitter.xml "/statuses/status/text"  0.00s user 0.00s system 40% cpu 0.0010 total
 #+end_src
-   - Wow! I'll bet without too much modification we can turn this into a Ruby C extension
+   - Without too much modification we can turn this into a Ruby C extension
 * Adding the extension infrastructure
 ** Directory structure
    - When adding a C extension, the common folder structure is
-     =ext/gemname/*.c=. We will create the ext/xpanther directory and
-     create a file called extconf.rb in the xpanther folder.
+     =ext/gemname/*.c=. We will create the =ext/xpanther= directory and
+     create a file called =extconf.rb= in the xpanther folder.
 ** extconf.rb
    - =extconf.rb= will generate a =Makefile= for the project. It is
      also what you will add to the gemspec to tell it how to build
