@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Extending Ruby With C"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2012-02-05 20:14:11 CST"/>
+<meta name="generated" content="2012-02-06 20:59:45 CST"/>
 <meta name="author" content="Aaron Bedra"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -160,18 +160,15 @@
 <div class="outline-text-2" id="text-1">
 
 <ul>
-<li>We will start with the basic structure of a gem. It consists of a
-    <code>.gemspec</code> file that containts the instructions for packaging and
-    building a gem.
+<li>We will start with the basic structure of a gem. We first need to
+    create a folder that will house everything.
 </li>
 </ul>
 
 
 
 
-<pre class="src src-sh">touch xpanther.gemspec
-mkdir lib
-touch lib/xpanther.rb
+<pre class="src src-sh">$ mkdir xpanther
 </pre>
 
 
@@ -182,12 +179,12 @@ touch lib/xpanther.rb
 <div class="outline-text-3" id="text-1-1">
 
 <ul>
-<li>Next, we need to put some basic code in place to make the gem function:
+<li>Let's put in our foundation:
 </li>
 </ul>
 
 
-
+<strong><i>lib/xpanther.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'rexml/document'</span>
 
@@ -208,12 +205,12 @@ touch lib/xpanther.rb
 <div class="outline-text-3" id="text-1-2">
 
 <ul>
-<li>Now we need to tell Rubygems how to build and package this gem:
+<li>Next we need to tell Rubygems how to build and package this gem:
 </li>
 </ul>
 
 
-
+<strong><i>xpanther.gemspec</i></strong>
 
 <pre class="src src-ruby"><span style="color: #008700;">Gem</span>::<span style="color: #008700;">Specification</span>.new <span style="color: #af00ff;">do</span> |s|
   s.name        = <span style="color: #87005f;">'xpanther'</span>
@@ -237,7 +234,7 @@ touch lib/xpanther.rb
 <div class="outline-text-3" id="text-1-3">
 
 <ul>
-<li>First, build and install the gem:
+<li>To test the gem we need to build and install it:
 </li>
 </ul>
 
@@ -249,7 +246,19 @@ $ gem install xpanther-0.0.0.gem
 </pre>
 
 <ul>
-<li>Next, start an irb session using the new gem:
+<li>We also need some test data. Let's grab a copy of the twitter public timeline:
+</li>
+</ul>
+
+
+
+
+<pre class="src src-sh">mkdir examples
+curl http://api.twitter.com/1/statuses/public_timeline.xml &gt; examples/twitter.xml
+</pre>
+
+<ul>
+<li>Let's start an irb session using the new gem:
 </li>
 </ul>
 
@@ -283,13 +292,13 @@ $ gem install xpanther-0.0.0.gem
 <div class="outline-text-3" id="text-2-1">
 
 <ul>
-<li>We should add at least one test to get our structure in place and
-     make sure things behave like we expect them to:
+<li>We should add at least one test to make sure things are in place
+     and behaving like we expect them to:
 </li>
 </ul>
 
 
-
+<strong><i>test/test_xpanther.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'test/unit'</span>
 require <span style="color: #87005f;">'xpanther'</span>
@@ -312,12 +321,12 @@ require <span style="color: #87005f;">'xpanther'</span>
 <div class="outline-text-3" id="text-2-2">
 
 <ul>
-<li>It's always easier to control things via Rake
+<li>It's always easier to control things via <code>Rake</code>
 </li>
 </ul>
 
 
-
+<strong><i>Rakefile</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'rake/testtask'</span>
 
@@ -370,18 +379,12 @@ Finished<span style="color: #af00ff;"> in</span> 0.090969 seconds.
 
 <ul>
 <li>We can now use our gem to see how fast it takes to ask some
-     questions about the sample xml document. Make sure to install the
-     latest version of the gem.
+     questions about the sample xml document.
 </li>
 </ul>
 
 
-
-
-<pre class="src src-sh">$ gem build xpanther.gemspec
-$ gem install xpanther-0.0.0.gem
-</pre>
-
+<strong><i>examples/pure.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'rubygems'</span>
 require <span style="color: #87005f;">'xpanther'</span>
@@ -413,11 +416,6 @@ ruby examples/pure.rb  0.15s user 0.01s system 98% cpu 0.167 total
 <h3 id="sec-3-2"><span class="section-number-3">3.2</span> Should we stop here?</h3>
 <div class="outline-text-3" id="text-3-2">
 
-<ul>
-<li>This actually seems pretty fast. Isn't this fast enough?
-</li>
-</ul>
-
 </div>
 </div>
 
@@ -442,7 +440,7 @@ ruby examples/pure.rb  0.15s user 0.01s system 98% cpu 0.167 total
 <div class="outline-text-3" id="text-4-1">
 
 
-
+<strong><i>examples/xml.c</i></strong>
 
 <pre class="src src-c"><span style="color: #5f5f87;">#include</span> <span style="color: #87005f;">&lt;stdlib.h&gt;</span>
 <span style="color: #5f5f87;">#include</span> <span style="color: #87005f;">&lt;stdio.h&gt;</span>
@@ -534,7 +532,7 @@ gelitik cewe paling binal dan buset ,,
 </pre>
 
 <ul>
-<li>Wow! I'll bet without too much modification we can turn this into a Ruby C extension
+<li>Without too much modification we can turn this into a Ruby C extension
 </li>
 </ul>
 
@@ -556,8 +554,8 @@ gelitik cewe paling binal dan buset ,,
 
 <ul>
 <li>When adding a C extension, the common folder structure is
-     <code>ext/gemname/*.c</code>. We will create the ext/xpanther directory and
-     create a file called extconf.rb in the xpanther folder.
+     <code>ext/gemname/*.c</code>. We will create the <code>ext/xpanther</code> directory and
+     create a file called <code>extconf.rb</code> in the xpanther folder.
 </li>
 </ul>
 
@@ -577,7 +575,7 @@ gelitik cewe paling binal dan buset ,,
 </ul>
 
 
-
+<strong><i>ext/xpanther/extconf.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'mkmf'</span>
 create_makefile(<span style="color: #87005f;">'xpanther/xpanther'</span>)
@@ -597,7 +595,7 @@ create_makefile(<span style="color: #87005f;">'xpanther/xpanther'</span>)
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #5f5f87;">#include</span> <span style="color: #87005f;">&lt;ruby.h&gt;</span>
 
@@ -617,7 +615,7 @@ create_makefile(<span style="color: #87005f;">'xpanther/xpanther'</span>)
 </ul>
 
 
-
+<strong><i>lib/xpanther.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'xpanther/xpanther'</span>
 require <span style="color: #87005f;">'rexml/document'</span>
@@ -640,7 +638,7 @@ require <span style="color: #87005f;">'rexml/document'</span>
 </ul>
 
 
-
+<strong><i>xpanther.gemspec</i></strong>
 
 <pre class="src src-ruby"><span style="color: #008700;">Gem</span>::<span style="color: #008700;">Specification</span>.new <span style="color: #af00ff;">do</span> |s|
   <span style="color: #af0000;"># </span><span style="color: #af0000;">... (other stuff) ...</span>
@@ -710,7 +708,7 @@ Installing RDoc documentation for xpanther-0.0.1...
 </ul>
 
 
-
+<strong><i>test/test_xpanther.rb</i></strong>
 
 <pre class="src src-ruby"><span style="color: #af00ff;">def</span> <span style="color: #0000ff;">test_extension</span>
   assert_equal(<span style="color: #87005f;">"Hello from C"</span>, <span style="color: #008700;">XPanther</span>.hello)
@@ -767,7 +765,7 @@ Installing RDoc documentation for xpanther-0.0.1...
 </ul>
 
 
-
+<strong><i>Rakefile</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'rake/testtask'</span>
 require <span style="color: #87005f;">'rake/clean'</span>
@@ -872,7 +870,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #008700;">VALUE</span> <span style="color: #0000ff;">constructor</span>(<span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">self</span>, <span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">filename</span>) 
 {
@@ -929,7 +927,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #af00ff;">static</span> <span style="color: #008700;">void</span> <span style="color: #0000ff;">xml_free</span>(<span style="color: #008700;">void</span> *<span style="color: #af5f00;">doc</span>) {
   xmlFreeDoc(doc);
@@ -958,7 +956,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #af00ff;">static</span> <span style="color: #008700;">VALUE</span> <span style="color: #0000ff;">initialize</span>(<span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">self</span>, <span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">filename</span>) 
 {
@@ -975,7 +973,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #008700;">void</span> <span style="color: #0000ff;">Init_xpanther</span>(<span style="color: #008700;">void</span>)
 {
@@ -1008,7 +1006,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #008700;">VALUE</span> <span style="color: #0000ff;">search</span>(<span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">self</span>, <span style="color: #008700;">VALUE</span> <span style="color: #af5f00;">xpathExpr</span>)
 {
@@ -1085,7 +1083,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #008700;">void</span> <span style="color: #0000ff;">Init_xpanther</span>(<span style="color: #008700;">void</span>)
 {
@@ -1103,7 +1101,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/xpanther.c</i></strong>
 
 <pre class="src src-c"><span style="color: #5f5f87;">#include</span> <span style="color: #87005f;">&lt;ruby.h&gt;</span>
 <span style="color: #5f5f87;">#include</span> <span style="color: #87005f;">&lt;libxml/tree.h&gt;</span>
@@ -1119,7 +1117,7 @@ task <span style="color: #008787;">:default</span> =&gt; <span style="color: #00
 </ul>
 
 
-
+<strong><i>ext/xpanther/extconf.rb</i></strong>
 
 <pre class="src src-ruby">require <span style="color: #87005f;">'mkmf'</span>
 have_library(<span style="color: #87005f;">"xml2"</span>)
@@ -1136,7 +1134,6 @@ create_makefile(<span style="color: #87005f;">'xpanther/xpanther'</span>)
 </li>
 </ul>
 
-
 </div>
 </div>
 
@@ -1151,7 +1148,7 @@ create_makefile(<span style="color: #87005f;">'xpanther/xpanther'</span>)
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2012-02-05 20:14:11 CST</p>
+<p class="date">Date: 2012-02-06 20:59:45 CST</p>
 <p class="author">Author: Aaron Bedra</p>
 <p class="creator">Org version 7.8.03 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
