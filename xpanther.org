@@ -4,11 +4,13 @@
 #+LANGUAGE:  en
 
 * Starting Structure
-  - We will start with the basic structure of a gem. It consists of a
-    =.gemspec= file that containts the instructions for packaging and
-    building a gem.
+  - We will start with the basic structure of a gem. We first need to
+    create a folder that will house everything.
+#+begin_src sh
+  $ mkdir xpanther
+#+end_src
 ** Initial Code
-   - Next, we need to put some basic code in place to make the gem function:
+   - Let's put in our foundation:
 #+HTML: <strong><i>lib/xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
   require 'rexml/document'
@@ -21,7 +23,7 @@
   end
 #+end_src
 ** Initial Gemspec
-   - Now we need to tell Rubygems how to build and package this gem:
+   - Next we need to tell Rubygems how to build and package this gem:
 #+HTML: <strong><i>xpanther.gemspec</i></strong>
 #+begin_src ruby :tangle xpanther.gemspec
   Gem::Specification.new do |s|
@@ -37,12 +39,17 @@
   end
 #+end_src
 ** Building and testing the gem
-   - First, build and install the gem:
+   - To test the gem we need to build and install it:
 #+begin_src sh
   $ gem build xpanther.gemspec
   $ gem install xpanther-0.0.0.gem
 #+end_src
-   - Next, start an irb session using the new gem:
+   - We also need some test data. Let's grab a copy of the twitter public timeline:
+#+begin_src sh
+  mkdir examples
+  curl http://api.twitter.com/1/statuses/public_timeline.xml > examples/twitter.xml
+#+end_src
+   - Let's start an irb session using the new gem:
 #+begin_src sh
   $ irb -rubygems -rxpanther
 #+end_src
@@ -54,8 +61,8 @@
 #+end_src
 * Testing
 ** Adding the first test
-   - We should add at least one test to get our structure in place and
-     make sure things behave like we expect them to:
+   - We should add at least one test to make sure things are in place
+     and behaving like we expect them to:
 #+HTML: <strong><i>test/test_xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle test/test_xpanther.rb
   require 'test/unit'
@@ -70,7 +77,7 @@
   end
 #+end_src
 ** Adding a Rake task
-   - It's always easier to control things via Rake
+   - It's always easier to control things via =Rake=
 #+HTML: <strong><i>Rakefile</i></strong>
 #+begin_src ruby :tangle Rakefile
   require 'rake/testtask'
@@ -94,12 +101,7 @@
 * How fast is it?
 ** Timing a run
    - We can now use our gem to see how fast it takes to ask some
-     questions about the sample xml document. Make sure to install the
-     latest version of the gem.
-#+begin_src sh
-  $ gem build xpanther.gemspec
-  $ gem install xpanther-0.0.0.gem
-#+end_src
+     questions about the sample xml document.
 #+HTML: <strong><i>examples/pure.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle examples/pure.rb
   require 'rubygems'
@@ -117,7 +119,6 @@
   ruby examples/pure.rb  0.15s user 0.01s system 98% cpu 0.167 total
 #+end_src sh
 ** Should we stop here?
-   - This actually seems pretty fast. Isn't this fast enough?
 * Experiment: XPath search in C with libxml
   - libxml is a very widely used library in the XML parsing game. If
     you are in C and need to get the job done, libxml is your best
