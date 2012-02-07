@@ -7,13 +7,9 @@
   - We will start with the basic structure of a gem. It consists of a
     =.gemspec= file that containts the instructions for packaging and
     building a gem.
-#+begin_src sh
-  touch xpanther.gemspec
-  mkdir lib
-  touch lib/xpanther.rb
-#+end_src
 ** Initial Code
    - Next, we need to put some basic code in place to make the gem function:
+#+HTML: <strong><i>lib/xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
   require 'rexml/document'
   
@@ -26,6 +22,7 @@
 #+end_src
 ** Initial Gemspec
    - Now we need to tell Rubygems how to build and package this gem:
+#+HTML: <strong><i>xpanther.gemspec</i></strong>
 #+begin_src ruby :tangle xpanther.gemspec
   Gem::Specification.new do |s|
     s.name        = 'xpanther'
@@ -59,6 +56,7 @@
 ** Adding the first test
    - We should add at least one test to get our structure in place and
      make sure things behave like we expect them to:
+#+HTML: <strong><i>test/test_xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle test/test_xpanther.rb
   require 'test/unit'
   require 'xpanther'
@@ -73,6 +71,7 @@
 #+end_src
 ** Adding a Rake task
    - It's always easier to control things via Rake
+#+HTML: <strong><i>Rakefile</i></strong>
 #+begin_src ruby :tangle Rakefile
   require 'rake/testtask'
   
@@ -101,6 +100,7 @@
   $ gem build xpanther.gemspec
   $ gem install xpanther-0.0.0.gem
 #+end_src
+#+HTML: <strong><i>examples/pure.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle examples/pure.rb
   require 'rubygems'
   require 'xpanther'
@@ -123,6 +123,7 @@
     you are in C and need to get the job done, libxml is your best
     friend
 ** The test
+#+HTML: <strong><i>examples/xml.c</i></strong>
 #+begin_src c :tangle examples/xml.c
   #include <stdlib.h>
   #include <stdio.h>
@@ -198,12 +199,14 @@
    - =extconf.rb= will generate a =Makefile= for the project. It is
      also what you will add to the gemspec to tell it how to build
      your extension.
+#+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle ext/xpanther/extconf.rb
   require 'mkmf'
   create_makefile('xpanther/xpanther')
 #+end_src
 ** A simple example
    - Now we just need to add a short example to test our structure and wiring.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c :mkdirp yes :tangle ext/xpanther/xpanther.c
   #include <ruby.h>
   
@@ -217,6 +220,7 @@
   }
 #+end_src
    - We also need to have our gem load the extension
+#+HTML: <strong><i>lib/xpanther.rb</i></strong>
 #+begin_src ruby
   require 'xpanther/xpanther'
   require 'rexml/document'
@@ -226,6 +230,7 @@
 #+end_src ruby
 ** Updating the gemspec
    - In order to have the extension built when our gem is installed, we have to tell the gemspec about it.
+#+HTML: <strong><i>xpanther.gemspec</i></strong>
 #+begin_src ruby
   Gem::Specification.new do |s|
     # ... (other stuff) ...
@@ -260,6 +265,7 @@
    - We are going to add a test for our new extension. You might be
      wondering why, but it will present an interesting challenge for
      us to solve when we try to run the tests.
+#+HTML: <strong><i>test/test_xpanther.rb</i></strong>
 #+begin_src ruby
   def test_extension
     assert_equal("Hello from C", XPanther.hello)
@@ -287,7 +293,8 @@
      extension of =.bundle=. If you are on Linux you would see =.so=
      instead of .bundle
    - Let's add some code into our =Rakefile= to automatically compile our extension when we run =rake=
-#+begin_src ruby :tangle no
+#+HTML: <strong><i>Rakefile</i></strong>
+#+begin_src ruby
   require 'rake/testtask'
   require 'rake/clean'
   require 'rbconfig'
@@ -335,6 +342,7 @@
    - Since we want to deal with libxml needs to manage its own memory
      here, we will need to modify the constructor just a bit to
      account for this.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   VALUE constructor(VALUE self, VALUE filename) 
   {
@@ -374,6 +382,7 @@
      supposed to instruct Ruby's garbage collection routines on how to
      deal with the memory allocated by libxml during object
      construction. Let's take a look.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   static void xml_free(void *doc) {
     xmlFreeDoc(doc);
@@ -385,6 +394,7 @@
 ** Wiring up our new constructor
    - In order for us to be able to accept an argument in our
      constructor, we also need to create an initialize method.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   static VALUE initialize(VALUE self, VALUE filename) 
   {
@@ -395,6 +405,7 @@
    - We have a new constructor that will serve our purpose well, but
      we still need to wire it up to our object inside the
      =Init_xpanther= function.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   void Init_xpanther(void)
   {
@@ -410,6 +421,7 @@
    - We have all the structure in place. We just have to drop our
      search routine in place and wire it up and our task will be
      complete. Let's define our =search= method.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   VALUE search(VALUE self, VALUE xpathExpr)
   {
@@ -477,6 +489,7 @@
      length of the string, making the function call more convienient.
    - =rb_ary_new= and =rb_ary_push= do exactly what you think they do.
    - Let's wire up the search function:
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   void Init_xpanther(void)
   {
@@ -488,6 +501,7 @@
    - We need to do a little bit of housekeeping to make things build
      properly. First, adjust the includes in =xpanther.c= to include
      the libxml pieces from our experiment.
+#+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   #include <ruby.h>
   #include <libxml/tree.h>
@@ -497,6 +511,7 @@
 #+end_src
    - We also need to modify =extconf.rb= and tell it to link against
      libxml so that our extension can compile properly.
+#+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
 #+begin_src ruby
   require 'mkmf'
   have_library("xml2")
@@ -508,7 +523,4 @@
 #+end_src
    - Since we already wired up our extension, all we have to do is
      rebuild and reinstall our gem to give it a try.
-#+begin_src sh
-  
-#+end_src
 * The results!
