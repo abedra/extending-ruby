@@ -663,10 +663,6 @@
   Hoje sai com a @is_nanny
   ruby extended.rb  0.02s user 0.01s system 95% cpu 0.029 total
 #+end_src
-  - This is quite a bit faster than our original test! This very
-    scientific benchmarking process proves that with a little bit of
-    effort and some help from your old pal C, you can speed Ruby up
-    quite a bit.
 * References
   - RubyGems Guides, C Extensions [[http://guides.rubygems.org/c-extensions/][http://guides.rubygems.org/c-extensions/]]
   - Programming Ruby, Extending Ruby [[http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html][http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html]]
