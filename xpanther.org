@@ -3,7 +3,10 @@
 #+EMAIL:     aaron@aaronbedra.com
 #+LANGUAGE:  en
 
-* Starting Structure
+* Getting Started
+  - There's a lot to cover when it comes to extending Ruby. To
+    demonstrate the point, we will start by creating a basic ruby gem
+    written entirely in Ruby, and modify it as we go.
   - We will start with the basic structure of a gem. We first need to
     create a folder that will house everything.
 #+begin_src sh
@@ -276,7 +279,7 @@
    - When we try to run =rake= we are now presented with an error.
 #+begin_src sh
   $ rake
-  ./lib/xpanther.rb:1:in `require': no such file to load -- xpanther/xpanther (LoadError)
+  ./lib/xpanther.rb:1:in 'require': no such file to load -- xpanther/xpanther (LoadError)
   from ./lib/xpanther.rb:1
   
   ....
@@ -665,4 +668,5 @@
     effort and some help from your old pal C, you can speed Ruby up
     quite a bit.
 * References
-  - 
+  - RubyGems Guides, C Extensions [[http://guides.rubygems.org/c-extensions/][http://guides.rubygems.org/c-extensions/]]
+  - Programming Ruby, Extending Ruby [[http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html][http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html]]
