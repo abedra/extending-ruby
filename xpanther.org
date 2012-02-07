@@ -15,7 +15,7 @@
 ** Initial Code
    - Let's put in our foundation:
 #+HTML: <strong><i>lib/xpanther.rb</i></strong>
-#+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
+#+begin_src ruby
   require 'rexml/document'
   
   class XPanther
@@ -28,7 +28,7 @@
 ** Initial Gemspec
    - Next we need to tell Rubygems how to build and package this gem:
 #+HTML: <strong><i>xpanther.gemspec</i></strong>
-#+begin_src ruby :tangle xpanther.gemspec
+#+begin_src ruby
   Gem::Specification.new do |s|
     s.name        = 'xpanther'
     s.version     = '0.0.0'
@@ -82,7 +82,7 @@
 ** Adding a Rake task
    - It's always easier to control things via =Rake=
 #+HTML: <strong><i>Rakefile</i></strong>
-#+begin_src ruby :tangle Rakefile
+#+begin_src ruby
   require 'rake/testtask'
   
   Rake::TestTask.new do |t|
@@ -106,7 +106,7 @@
    - We can now use our gem to see how fast it takes to ask some
      questions about the sample xml document.
 #+HTML: <strong><i>examples/pure.rb</i></strong>
-#+begin_src ruby :mkdirp yes :tangle examples/pure.rb
+#+begin_src ruby :mkdirp yes :tangle examples/pure.rb :shebang #!/usr/bin/env ruby
   require 'rubygems'
   require 'xpanther'
   
@@ -204,14 +204,14 @@
      also what you will add to the gemspec to tell it how to build
      your extension.
 #+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
-#+begin_src ruby :mkdirp yes :tangle ext/xpanther/extconf.rb
+#+begin_src ruby
   require 'mkmf'
   create_makefile('xpanther/xpanther')
 #+end_src
 ** A simple example
    - Now we just need to add a short example to test our structure and wiring.
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
-#+begin_src c :mkdirp yes :tangle ext/xpanther/xpanther.c
+#+begin_src c 
   #include <ruby.h>
   
   static VALUE hello(VALUE self) {
@@ -225,24 +225,32 @@
 #+end_src
    - We also need to have our gem load the extension
 #+HTML: <strong><i>lib/xpanther.rb</i></strong>
-#+begin_src ruby
+#+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
   require 'xpanther/xpanther'
   require 'rexml/document'
-  class XPanther
   
-  ....
+  class XPanther
+    def self.search_pure(filename, xpath)
+      document = REXML::Document.new(File.read(filename))
+      REXML::XPath.match(document.root, xpath)
+    end
+  end
 #+end_src ruby
 ** Updating the gemspec
    - In order to have the extension built when our gem is installed, we have to tell the gemspec about it.
 #+HTML: <strong><i>xpanther.gemspec</i></strong>
-#+begin_src ruby
+#+begin_src ruby :tangle xpanther.gemspec
   Gem::Specification.new do |s|
-    # ... (other stuff) ...
-  
+    s.name        = 'xpanther'
+    s.version     = '0.0.0'
+    s.date        = '2012-02-21'
+    s.summary     = "Made with real bits of panther"
+    s.description = "60% of the time it works all the time"
+    s.authors     = ["Aaron Bedra"]
+    s.email       = 'aaron@aaronbedra.com'
     s.files = Dir.glob('lib/**/*.rb') + Dir.glob('ext/**/*.c')
     s.extensions = ['ext/xpanther/extconf.rb']
-  
-    # ... (other stuff) ...
+    s.homepage    = "http://example.com"
   end
 #+end_src
 ** Trying out the extension
@@ -298,7 +306,7 @@
      instead of .bundle
    - Let's add some code into our =Rakefile= to automatically compile our extension when we run =rake=
 #+HTML: <strong><i>Rakefile</i></strong>
-#+begin_src ruby
+#+begin_src ruby :tangle Rakefile
   require 'rake/testtask'
   require 'rake/clean'
   require 'rbconfig'
@@ -521,7 +529,7 @@
    - We also need to modify =extconf.rb= and tell it to link against
      libxml so that our extension can compile properly.
 #+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
-#+begin_src ruby
+#+begin_src ruby :mkdirp yes :tangle ext/xpanther/extconf.rb
   require 'mkmf'
   have_library("xml2")
   find_header("libxml/tree.h", "/usr/include/libxml2")
@@ -533,7 +541,7 @@
    - Since we moved around a bit inside the =xpanther.c= file, here's
      a complete sample.
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
-#+begin_src c
+#+begin_src c :mkdirp yes :tangle ext/xpanther/xpanther.c
   #include <ruby.h>
   #include <libxml/tree.h>
   #include <libxml/parser.h>
@@ -647,7 +655,7 @@
 * The results!
   - It's time to see how much we gained from our efforts. Let's put together a test
 #+HTML: <strong><i>examples/extended.rb</i></strong>
-#+begin_src ruby
+#+begin_src ruby :mkdirp yes :tangle examples/extended.rb :shebang #!/usr/bin/env ruby
   require 'rubygems'
   require 'xpanther'
   

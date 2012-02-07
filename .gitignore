@@ -8,3 +8,4 @@ xpanther.gemspec
 *.html
 ext
 *.gem
+examples/extended.rb
