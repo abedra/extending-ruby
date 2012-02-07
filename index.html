@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
 <meta name="title" content="Extending Ruby With C"/>
 <meta name="generator" content="Org-mode"/>
-<meta name="generated" content="2012-02-07 08:40:01 CST"/>
+<meta name="generated" content="2012-02-07 09:06:40 CST"/>
 <meta name="author" content="Aaron Bedra"/>
 <meta name="description" content=""/>
 <meta name="keywords" content=""/>
@@ -624,9 +624,13 @@ create_makefile(<span style="color: #8b2252;">'xpanther/xpanther'</span>)
 
 <pre class="src src-ruby">require <span style="color: #8b2252;">'xpanther/xpanther'</span>
 require <span style="color: #8b2252;">'rexml/document'</span>
-<span style="color: #7f007f;">class</span> <span style="color: #228b22;">XPanther</span>
 
-....
+<span style="color: #7f007f;">class</span> <span style="color: #228b22;">XPanther</span>
+  <span style="color: #7f007f;">def</span> <span style="color: #0000ff;">self.search_pure</span>(filename, xpath)
+    document = <span style="color: #228b22;">REXML</span>::<span style="color: #228b22;">Document</span>.new(<span style="color: #228b22;">File</span>.read(filename))
+    <span style="color: #228b22;">REXML</span>::<span style="color: #228b22;">XPath</span>.match(document.root, xpath)
+  <span style="color: #7f007f;">end</span>
+<span style="color: #7f007f;">end</span>
 </pre>
 
 </div>
@@ -646,12 +650,16 @@ require <span style="color: #8b2252;">'rexml/document'</span>
 <strong><i>xpanther.gemspec</i></strong>
 
 <pre class="src src-ruby"><span style="color: #228b22;">Gem</span>::<span style="color: #228b22;">Specification</span>.new <span style="color: #7f007f;">do</span> |s|
-  <span style="color: #b22222;"># </span><span style="color: #b22222;">... (other stuff) ...</span>
-
+  s.name        = <span style="color: #8b2252;">'xpanther'</span>
+  s.version     = <span style="color: #8b2252;">'0.0.0'</span>
+  s.date        = <span style="color: #8b2252;">'2012-02-21'</span>
+  s.summary     = <span style="color: #8b2252;">"Made with real bits of panther"</span>
+  s.description = <span style="color: #8b2252;">"60% of the time it works all the time"</span>
+  s.authors     = [<span style="color: #8b2252;">"Aaron Bedra"</span>]
+  s.email       = <span style="color: #8b2252;">'aaron@aaronbedra.com'</span>
   s.files = <span style="color: #228b22;">Dir</span>.glob(<span style="color: #8b2252;">'lib/**/*.rb'</span>) + <span style="color: #228b22;">Dir</span>.glob(<span style="color: #8b2252;">'ext/**/*.c'</span>)
   s.extensions = [<span style="color: #8b2252;">'ext/xpanther/extconf.rb'</span>]
-
-  <span style="color: #b22222;"># </span><span style="color: #b22222;">... (other stuff) ...</span>
+  s.homepage    = <span style="color: #8b2252;">"http://example.com"</span>
 <span style="color: #7f007f;">end</span>
 </pre>
 
@@ -1325,7 +1333,7 @@ ruby extended.rb  0.02s user 0.01s system 95% cpu 0.029 total
 </div>
 
 <div id="postamble">
-<p class="date">Date: 2012-02-07 08:40:01 CST</p>
+<p class="date">Date: 2012-02-07 09:06:40 CST</p>
 <p class="author">Author: Aaron Bedra</p>
 <p class="creator">Org version 7.8.03 with Emacs version 24</p>
 <a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
