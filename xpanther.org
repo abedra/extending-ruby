@@ -455,7 +455,6 @@
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
       fprintf(stderr, "Error: unable to create new XPath context\n");
-      xmlFreeDoc(doc);
       return Qnil;
     }
   
@@ -463,7 +462,6 @@
     if (xpathObj == NULL) {
       fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
-      xmlFreeDoc(doc);
       return Qnil;
     }
     
@@ -592,7 +590,6 @@
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
       fprintf(stderr, "Error: unable to create new XPath context\n");
-      xmlFreeDoc(doc);
       return Qnil;
     }
   
@@ -600,7 +597,6 @@
     if (xpathObj == NULL) {
       fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
-      xmlFreeDoc(doc);
       return Qnil;
     }
   
