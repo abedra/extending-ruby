@@ -3,6 +3,8 @@
 #+EMAIL:     aaron@aaronbedra.com
 #+LANGUAGE:  en
 
+* Following Along						      :slide:
+  - http://abedra.github.com/extending-ruby
 * Getting Started						      :slide:
   - There's a lot to cover when it comes to extending Ruby. To
     demonstrate the point, we will start by creating a basic ruby gem
