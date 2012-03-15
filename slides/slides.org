@@ -88,7 +88,7 @@
   
   task :default => :test
 #+end_src
-** Running our tests						      :slide:
+** Run our test 						      :slide:
 #+begin_src sh
   Loaded suite /Users/abedra/.rvm/gems/ree-1.8.7-2011.12
                /gems/rake-0.9.2.2/lib/rake/rake_test_loader
@@ -115,7 +115,7 @@
   gelitik cewe paling binal dan buset ,,
   ruby examples/pure.rb  0.15s user 0.01s system 98% cpu 0.167 total
 #+end_src sh
-* Experiment: XPath search in C with libxml
+* Experiment: XPath search in C with libxml			      :slide:
   - libxml is a very widely used library in the XML parsing game. If
     you are in C and need to get the job done, libxml is your best
     friend
@@ -185,7 +185,7 @@
   ./xml twitter.xml "/statuses/status/text"  
   0.00s user 0.00s system 40% cpu 0.0010 total
 #+end_src
-** Add the extension infrastructure 				      :slide:
+* Add the extension infrastructure 				      :slide:
 #+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
 #+begin_src ruby
   require 'mkmf'
@@ -296,7 +296,7 @@
   desc "Run tests"
   task :default => :test
 #+end_src
-** Thinking about the API					      :slide:
+* Thinking about the API 					      :slide:
    - There's quite a few different ways to create an API. Since we
      know that we are going to perform an XPath search when we
      instantiate our class, it would be nice to have it go ahead and
@@ -321,7 +321,8 @@
     
       doc = xmlParseFile(StringValueCStr(filename));
       if (doc == NULL) {
-        rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
+        rb_raise(rb_eRuntimeError, "Error: unable to parse file \"%s\"\n", 
+                                   StringValueCStr(filename));
         return Qnil;
       }
     
@@ -332,10 +333,6 @@
     }
 #+end_src
 ** Freeing the memory						      :slide:
-   - Previously, we pointed to a function called =xml_free= that is
-     supposed to instruct Ruby's garbage collection routines on how to
-     deal with the memory allocated by libxml during object
-     construction. Let's take a look.
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   static void xml_free(void *doc) {
@@ -566,6 +563,21 @@
   20
   Hoje sai com a @is_nanny
   ruby extended.rb  0.02s user 0.01s system 95% cpu 0.029 total
+#+end_src
+** A better example 						      :slide:
+#+begin_src ruby
+  require 'rubygems'
+  require 'xpanther'
+
+  document = XPather.new("iTunes Music Library.xml")
+  document.search("/plist/dict/dict/dict/key[text()='Artist']/following-sibling::string[1]").uniq
+#+end_src
+#+begin_src sh
+  $ time ruby c.rb
+  ruby c.rb  0.03s user 0.01s system 95% cpu 0.037 total
+
+  $ time ruby pure.rb
+  ruby pure.rb  0.53s user 0.03s system 99% cpu 0.559 total
 #+end_src
 * References							      :slide:
   - RubyGems Guides, C Extensions [[http://guides.rubygems.org/c-extensions/][http://guides.rubygems.org/c-extensions/]]

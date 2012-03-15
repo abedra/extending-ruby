@@ -368,7 +368,8 @@
   
     doc = xmlParseFile(StringValueCStr(filename));
     if (doc == NULL) {
-      fprintf(stderr, "Error: unable to parse file \"%s\"\n", StringValueCStr(filename));
+      rb_raise(rb_eRuntimeError, "Error: unable to parse file \"%s\"\n", 
+                                 StringValueCStr(filename));
       return Qnil;
     }
   
@@ -454,13 +455,14 @@
   
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
-      fprintf(stderr, "Error: unable to create new XPath context\n");
+      rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
       return Qnil;
     }
   
     xpathObj = xmlXPathEvalExpression(StringValueCStr(xpathExpr), xpathCtx);
     if (xpathObj == NULL) {
-      fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
+      rb_raise(rb_eArgError, "Error: unable to evaluate xpath expression \"%s\"\n", 
+                             StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
       return Qnil;
     }
@@ -564,7 +566,8 @@
   
     doc = xmlParseFile(StringValueCStr(filename));
     if (doc == NULL) {
-      fprintf(stderr, "Error: unable to parse file \"%s\"\n", StringValueCStr(filename));
+      rb_raise(rb_eRuntimeError, "Error: unable to parse file \"%s\"\n", 
+                                 StringValueCStr(filename));
       return Qnil;
     }
   
@@ -589,13 +592,14 @@
   
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
-      fprintf(stderr, "Error: unable to create new XPath context\n");
+      rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
       return Qnil;
     }
   
     xpathObj = xmlXPathEvalExpression(StringValueCStr(xpathExpr), xpathCtx);
     if (xpathObj == NULL) {
-      fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
+      rb_raise(rb_eArgError, "Error: unable to evaluate xpath expression \"%s\"\n", 
+                             StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
       return Qnil;
     }
@@ -666,6 +670,21 @@
   20
   Hoje sai com a @is_nanny
   ruby extended.rb  0.02s user 0.01s system 95% cpu 0.029 total
+#+end_src
+** A better example
+#+begin_src ruby
+  require 'rubygems'
+  require 'xpanther'
+
+  document = XPather.new("iTunes Music Library.xml")
+  document.search("/plist/dict/dict/dict/key[text()='Artist']/following-sibling::string[1]").uniq
+#+end_src
+#+begin_src sh
+  $ time ruby c.rb
+  ruby c.rb  0.03s user 0.01s system 95% cpu 0.037 total
+
+  $ time ruby pure.rb
+  ruby pure.rb  0.53s user 0.03s system 99% cpu 0.559 total
 #+end_src
 * References
   - RubyGems Guides, C Extensions [[http://guides.rubygems.org/c-extensions/][http://guides.rubygems.org/c-extensions/]]
