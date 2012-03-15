@@ -12,7 +12,7 @@
 #+begin_src sh
   $ mkdir xpanther
 #+end_src
-** Putting in the foundation 					      :slide:
+** Foundation 							      :slide:
 #+HTML: <strong><i>lib/xpanther.rb</i></strong>
 #+begin_src ruby
   require 'rexml/document'
@@ -39,7 +39,7 @@
     s.homepage    = "http://example.com"
   end
 #+end_src
-** Building and testing the gem					      :slide:
+** Build the gem 						      :slide:
 #+begin_src sh
   $ gem build xpanther.gemspec
   $ gem install xpanther-0.0.0.gem
@@ -47,19 +47,22 @@
    - Fetch a copy of the twitter public timeline:
 #+begin_src sh
   mkdir examples
-  curl http://api.twitter.com/1/statuses/public_timeline.xml > examples/twitter.xml
+  curl http://api.twitter.com/1/statuses/public_timeline.xml > 
+       examples/twitter.xml
 #+end_src
    - Start an irb session using the new gem:
 #+begin_src sh
   $ irb -rubygems -rxpanther
 #+end_src
 #+begin_src sh
-  >> XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()").count
+  >> XPanther.search_pure("examples/twitter.xml", 
+                          "/statuses/status/text/text()").count
   => 20
-  >> XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()").first
+  >> XPanther.search_pure("examples/twitter.xml", 
+                          "/statuses/status/text/text()").first
   => "Hoje sai com a @is_nanny"
 #+end_src
-** Adding the first test					      :slide:
+** Add the first test 						      :slide:
 #+HTML: <strong><i>test/test_xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle test/test_xpanther.rb
   require 'test/unit'
@@ -74,7 +77,7 @@
     end
   end
 #+end_src
-** Adding a Rake task						      :slide:
+** Add a Rake task 						      :slide:
 #+HTML: <strong><i>Rakefile</i></strong>
 #+begin_src ruby
   require 'rake/testtask'
@@ -87,20 +90,22 @@
 #+end_src
 ** Running our tests						      :slide:
 #+begin_src sh
-  Loaded suite /Users/abedra/.rvm/gems/ree-1.8.7-2011.12/gems/rake-0.9.2.2/lib/rake/rake_test_loader
+  Loaded suite /Users/abedra/.rvm/gems/ree-1.8.7-2011.12
+               /gems/rake-0.9.2.2/lib/rake/rake_test_loader
   Started
   .
   Finished in 0.090969 seconds.
   
   1 tests, 2 assertions, 0 failures, 0 errors
 #+end_src
-** Timing a run							      :slide:
+** Time the experiment 						      :slide:
 #+HTML: <strong><i>examples/pure.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle examples/pure.rb :shebang #!/usr/bin/env ruby
   require 'rubygems'
   require 'xpanther'
   
-  results = XPanther.search_pure("examples/twitter.xml", "/statuses/status/text/text()")
+  results = XPanther.search_pure("examples/twitter.xml", 
+                                 "/statuses/status/text/text()")
   puts results.count
   puts results[1]
 #+end_src
@@ -164,7 +169,7 @@
     return 0;
   }
 #+end_src
-** Timing a Run 						      :slide:
+** Time the experiment 						      :slide:
 #+begin_src sh
   gcc xml.c -o xml `xml2-config --cflags` `xml2-config --libs`
 #+end_src
@@ -180,7 +185,7 @@
   ./xml twitter.xml "/statuses/status/text"  
   0.00s user 0.00s system 40% cpu 0.0010 total
 #+end_src
-** Adding the extension infrastructure				      :slide:
+** Add the extension infrastructure 				      :slide:
 #+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
 #+begin_src ruby
   require 'mkmf'
@@ -200,7 +205,7 @@
     rb_define_singleton_method(klass, "hello", hello, 0);
   }
 #+end_src
-** Updating the gem						      :slide:
+** Update the gem 						      :slide:
 #+HTML: <strong><i>lib/xpanther.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle lib/xpanther.rb
   require 'xpanther/xpanther'
@@ -213,7 +218,7 @@
     end
   end
 #+end_src ruby
-** Updating the gemspec						      :slide:
+** Update the gemspec 						      :slide:
 #+HTML: <strong><i>xpanther.gemspec</i></strong>
 #+begin_src ruby :tangle xpanther.gemspec
   Gem::Specification.new do |s|
@@ -231,7 +236,7 @@
   end
   
 #+end_src
-** Trying out the extension					      :slide:
+** Test the extension 						      :slide:
 #+begin_src sh
   $ gem install xpanther-0.0.1.gem 
   Building native extensions.  This could take a while...
@@ -245,7 +250,7 @@
   >> XPanther.hello
   => "Hello from C"
 #+end_src
-** Adding a test						      :slide:
+** Add a test 							      :slide:
 #+HTML: <strong><i>test/test_xpanther.rb</i></strong>
 #+begin_src ruby
   def test_extension
@@ -254,8 +259,8 @@
 #+end_src
 #+begin_src sh
   $ rake
-  ./lib/xpanther.rb:1:in 'require': no such file to load -- xpanther/xpanther (LoadError)
-  from ./lib/xpanther.rb:1
+  ./lib/xpanther.rb:1:in 'require': no such file to load -- 
+  xpanther/xpanther (LoadError) from ./lib/xpanther.rb:1
   
   ....
 #+end_src
@@ -291,64 +296,42 @@
   desc "Run tests"
   task :default => :test
 #+end_src
-* Moving the example into a real Ruby extension
-** How should the API look?
+** Thinking about the API					      :slide:
    - There's quite a few different ways to create an API. Since we
      know that we are going to perform an XPath search when we
      instantiate our class, it would be nice to have it go ahead and
      preprocess the xml into memory for us. This obivously has
      limitations based on file size, but we are going to ignore that
      for the purposes of this example.
-*** A note about GC and memory management
-    - Note that in our C example libxml created and freed the
-      memory. Ruby will not be able to handle the cleanup here and we
-      will introduce a memory leak if we ignore this.
-** Object creation
-   - When we create the object we should parse the XML document into
-     memory and make it available for reference. Here's what our
-     object creation will look like.
+   - Note that in our C example libxml created and freed the
+     memory. Ruby will not be able to handle the cleanup here and we
+     will introduce a memory leak if we ignore this.
+   - Here's what our object creation will look like.
 #+begin_src ruby
   document = XPanther.new("/path/to/document.xml")
 #+end_src
-** When the basic constructor just won't do
-   - Since libxml needs to manage its own memory here, we will need to
-     modify the constructor just a bit to account for this.
+** When the basic constructor just won't do			      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
-  VALUE constructor(VALUE self, VALUE filename) 
-  {
-    xmlDocPtr doc;  
-    VALUE argv[1];
-    VALUE t_data;
-  
-    doc = xmlParseFile(StringValueCStr(filename));
-    if (doc == NULL) {
-      fprintf(stderr, "Error: unable to parse file \"%s\"\n", StringValueCStr(filename));
-      return Qnil;
+    VALUE constructor(VALUE self, VALUE filename) 
+    {
+      xmlDocPtr doc;  
+      VALUE argv[1];
+      VALUE t_data;
+    
+      doc = xmlParseFile(StringValueCStr(filename));
+      if (doc == NULL) {
+        rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
+        return Qnil;
+      }
+    
+      t_data = Data_Wrap_Struct(self, 0, xml_free, doc);
+      argv[0] = filename;
+      rb_obj_call_init(t_data, 1, argv);
+      return t_data;
     }
-  
-    t_data = Data_Wrap_Struct(self, 0, xml_free, doc);
-    argv[0] = filename;
-    rb_obj_call_init(t_data, 1, argv);
-    return t_data;
-  }
 #+end_src
-   - There's a few new ideas going on here. We are accepting a
-     filename as an argument to our constructor. This is then
-     converted from a Ruby string to a C string via the
-     =StringValueCStr= function and passed into =xmlParseFile=. Error
-     checking is important here. If the user passes in an invalid
-     argument we want to notify them and return nil. We then have to
-     take our variable and wrap them in an object representation for
-     Ruby. We can do this via =Data_Wrap_Struct=. We have to provide
-     it the object reference, a mark for garbage collection, a pointer
-     to the function to call when it's time to free the memory, and a
-     pointer to the data that we want to stuff inside. We will examine
-     the =xml_free= function in a minute. Finally, we will manually
-     initialize our object with =rb_obj_call_init= and feed it our
-     object data, argument count, and argument data. This is the C way
-     to manually create a constructor for a Ruby class.
-** Freeing the memory
+** Freeing the memory						      :slide:
    - Previously, we pointed to a function called =xml_free= that is
      supposed to instruct Ruby's garbage collection routines on how to
      deal with the memory allocated by libxml during object
@@ -359,12 +342,7 @@
     xmlFreeDoc(doc);
   }
 #+end_src
-   - All we are doing here is delegating the memory management to
-     libxml. We just have to pass the function a pointer to the
-     document in memory.
-** Wiring up our new constructor
-   - In order for us to be able to accept an argument in our
-     constructor, we also need to create an initialize method.
+** Wiring up our new constructor				      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   static VALUE initialize(VALUE self, VALUE filename) 
@@ -373,9 +351,6 @@
     return self;
   }
 #+end_src
-   - We have a new constructor that will serve our purpose well, but
-     we still need to wire it up to our object inside the
-     =Init_xpanther= function.
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   void Init_xpanther(void)
@@ -385,13 +360,7 @@
     rb_define_method(klass, "initialize", initialize, 1);
   }
 #+end_src
-   - Here we are defining what the =new= method is going to do. In
-     this case, we are going to use our constructor and the cycle is
-     complete.
-** Putting it all together
-   - We have all the structure in place. We just have to drop our
-     search routine in place and wire it up and our task will be
-     complete. Let's define our =search= method.
+** Add the search method					      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   VALUE search(VALUE self, VALUE xpathExpr)
@@ -409,13 +378,14 @@
   
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
-      fprintf(stderr, "Error: unable to create new XPath context\n");
+      rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
       return Qnil;
     }
   
     xpathObj = xmlXPathEvalExpression(StringValueCStr(xpathExpr), xpathCtx);
     if (xpathObj == NULL) {
-      fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
+      rb_raise(rb_eArgError, "Error: unable to evaluate xpath expression \"%s\"\n", 
+                             StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
       return Qnil;
     }
@@ -438,26 +408,7 @@
     return results;
   }
 #+end_src
-   - Here we define a function that accepts an xpath expression just
-     like we had in our pure Ruby example. We setup our variables just
-     like we did in our experiment with the exception of =VALUE
-     results=. This is the value that we will pass back to Ruby after
-     we are done. We now see the reverse of our object packing,
-     =Data_Get_Struct=. It's a type-safe wrapper around the =DATA_PTR=
-     macro which essentially just returns the data we packed up in our
-     constructor and places it inside the =doc= variable.
-   - The rest of this function looks pretty similar to our experiment
-     with few exceptions. These are all Ruby/C interop functions that
-     make it possible for C to understand the Ruby data and then pass
-     it back so that Ruby can understand it.
-   - We already covered =StringValueCStr=, but we haven't seen
-     =rb_str_new2= yet. This function, along with the other
-     =rb_str_new= functions, turns a =char *= into a =VALUE= for Ruby
-     to consume. =rb_str_new2= is the most commonly used of the
-     conversion functions, because it automatically calculates the
-     length of the string, making the function call more convienient.
-   - =rb_ary_new= and =rb_ary_push= do exactly what you think they do.
-   - Let's wire up the search function:
+** Update the extension initalization				      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   void Init_xpanther(void)
@@ -468,9 +419,7 @@
     rb_define_method(klass, "search", search, 1);
   }
 #+end_src
-   - We need to do a little bit of housekeeping to make things build
-     properly. First, adjust the includes in =xpanther.c= to include
-     the libxml pieces from our experiment.
+** Update header info 						      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c
   #include <ruby.h>
@@ -479,8 +428,6 @@
   #include <libxml/xpath.h>
   #include <libxml/xpathInternals.h>
 #+end_src
-   - We also need to modify =extconf.rb= and tell it to link against
-     libxml so that our extension can compile properly.
 #+HTML: <strong><i>ext/xpanther/extconf.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle ext/xpanther/extconf.rb
   require 'mkmf'
@@ -491,8 +438,7 @@
   find_header("libxml/xpathInternals.h", "/usr/include/libxml2")
   create_makefile('xpanther/xpanther')
 #+end_src
-   - Since we moved around a bit inside the =xpanther.c= file, here's
-     a complete sample.
+** Final composition						      :slide:
 #+HTML: <strong><i>ext/xpanther/xpanther.c</i></strong>
 #+begin_src c :mkdirp yes :tangle ext/xpanther/xpanther.c
   #include <ruby.h>
@@ -519,7 +465,8 @@
   
     doc = xmlParseFile(StringValueCStr(filename));
     if (doc == NULL) {
-      fprintf(stderr, "Error: unable to parse file \"%s\"\n", StringValueCStr(filename));
+      rb_raise(rb_eRuntimeError, "Error: unable to parse file \"%s\"\n", 
+                                 StringValueCStr(filename));
       return Qnil;
     }
   
@@ -544,13 +491,14 @@
   
     xpathCtx = xmlXPathNewContext(doc);
     if (xpathCtx == NULL) {
-      fprintf(stderr, "Error: unable to create new XPath context\n");
+      rb_raise(rb_eRuntimeError, "Error: unable to create new XPath context\n");
       return Qnil;
     }
   
     xpathObj = xmlXPathEvalExpression(StringValueCStr(xpathExpr), xpathCtx);
     if (xpathObj == NULL) {
-      fprintf(stderr, "Error: unable to evaluate xpath expression \"%s\"\n", StringValueCStr(xpathExpr));
+      rb_raise(rb_eArgError, "Error: unable to evaluate xpath expression \"%s\"\n", 
+                             StringValueCStr(xpathExpr));
       xmlXPathFreeContext(xpathCtx);
       return Qnil;
     }
@@ -581,8 +529,7 @@
     rb_define_method(klass, "search", search, 1);
   }
 #+end_src
-   - Now all we have to do is rebuild and reinstall our gem to give it
-     a try. While we are at it we should also bump the version number.
+** Give it a try						      :slide:
 #+begin_src sh
   $ gem build xpanther.gemspec 
     Successfully built RubyGem
@@ -603,8 +550,7 @@
   >> document.search("/statuses/status/text").first
   => "Hoje sai com a @is_nanny"
 #+end_src
-* The results!
-  - It's time to see how much we gained from our efforts. Let's put together a test
+* The results!							      :slide:
 #+HTML: <strong><i>examples/extended.rb</i></strong>
 #+begin_src ruby :mkdirp yes :tangle examples/extended.rb :shebang #!/usr/bin/env ruby
   require 'rubygems'
@@ -615,14 +561,13 @@
   puts results.count
   puts results.first
 #+end_src
-  - We can time our run as we did before and take a look at the difference.
 #+begin_src sh
   $ time ruby extended.rb
   20
   Hoje sai com a @is_nanny
   ruby extended.rb  0.02s user 0.01s system 95% cpu 0.029 total
 #+end_src
-* References
+* References							      :slide:
   - RubyGems Guides, C Extensions [[http://guides.rubygems.org/c-extensions/][http://guides.rubygems.org/c-extensions/]]
   - Programming Ruby, Extending Ruby [[http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html][http://ruby-doc.org/docs/ProgrammingRuby/html/ext_ruby.html]]
 #+TAGS: slide(s)
